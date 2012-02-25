@@ -17,18 +17,32 @@ class IngredientList
   end
 
   def mutations
-    (-2..2).to_a.product((-2..2).to_a).map do |x,y|
+    positions = data.map { |e| e[0] }
 
-      translated_ingredients = data.map { |e|
+    candidates(positions).map do |x,y|
+      ingredients = data.map { |e|
         position, content = e
         new_position = position + Vector[x,y]
 
-        next if new_position.min < -2 || new_position.max > 2
-
         [new_position, content]
-      }.compact
+      }
 
-      IngredientList.new(Set[*translated_ingredients])
+      IngredientList.new(Set[*ingredients])
+    end
+  end
+
+  def candidates(set)
+    x_values = set.map { |e| e[0] }
+    y_values = set.map { |e| e[1] }
+
+    valid_shifts(x_values).product(valid_shifts(y_values))
+  end
+
+  def valid_shifts(values)
+    (-2..2).each_with_object([]) do |offset, valid_offsets|
+      c = values.map { |e| e + offset }
+       
+      valid_offsets << offset unless c.min < 0 || c.max > 2 
     end
   end
 
@@ -47,18 +61,16 @@ recipe_input  = IngredientList.new(Set[[Vector[0,2], :plank],
 # TODO: account for quantities
 recipe_output = :hoe
 
-user_input  = IngredientList.new(Set[[Vector[1,2], :plank],
-                                     [Vector[2,2], :plank],
-                                     [Vector[2,1], :stick],
-                                     [Vector[2,0], :stick]])
+user_input  = IngredientList.new(Set[[Vector[0,2], :plank],
+                                     [Vector[1,2], :plank],
+                                     [Vector[1,1], :stick],
+                                     [Vector[1,0], :stick]])
 
 
 
 cookbook = { recipe_input => recipe_output }
 
 user_input.mutations.each do |input|
-#  p input
-
   if match=cookbook[input]
     p match
     break 
