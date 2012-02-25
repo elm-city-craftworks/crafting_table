@@ -40,9 +40,9 @@ class IngredientList
 
   def valid_shifts(values)
     (-2..2).each_with_object([]) do |offset, valid_offsets|
-      c = values.map { |e| e + offset }
+      within_bounds = values.all? { |e| (0..2).include?(e + offset) }
        
-      valid_offsets << offset unless c.min < 0 || c.max > 2 
+      valid_offsets << offset if within_bounds
     end
   end
 
