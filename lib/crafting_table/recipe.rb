@@ -27,9 +27,9 @@ module CraftingTable
       raise ArgumentError unless (0...TABLE_WIDTH).include?(x)
       raise ArgumentError unless (0...TABLE_HEIGHT).include?(y)
 
-      update_margins(x,y)
-
       ingredients[Vector[x,y]] = ingredient_type
+
+      update_margins(x,y)
 
       self.changed = true
     end
@@ -48,8 +48,6 @@ module CraftingTable
 
     protected
 
-    attr_reader :ingredients
-
     def variants
       update_variants if changed      
 
@@ -58,27 +56,27 @@ module CraftingTable
     
     private
 
-    attr_accessor :margins, :changed
-    attr_writer :ingredients, :variants
+    attr_accessor :margins, :changed, :ingredients
+    attr_writer :variants
 
     def update_variants
       if margins.values.any? { |e| e == Float::INFINITY }
         raise InvalidRecipeError
       end
 
-      recipes = shifts.map do |x,y|
-        recipe      = self.class.new
+      variant_sets = shifts.map do |x,y|
+        ingredients_set = Set.new
 
         ingredients.each do |position, content|
           new_position = position + Vector[x,y]
 
-          recipe[*new_position] = content
+          ingredients_set << [new_position, content]
         end
 
-        Set[*recipe.ingredients]
+        ingredients_set
       end
 
-      self.variants = Set[*recipes]
+      self.variants = Set[*variant_sets]
       self.changed  = false
     end
 
