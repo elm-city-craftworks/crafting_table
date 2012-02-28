@@ -1,4 +1,5 @@
 require "matrix"
+require "set"
 
 module CraftingTable
   InvalidRecipeError = Class.new(StandardError)
@@ -14,7 +15,7 @@ module CraftingTable
                            :right  => Float::INFINITY,
                            :bottom => Float::INFINITY }
     end
-    
+
     def [](x,y)
       raise ArgumentError unless (0...TABLE_WIDTH).include?(x)
       raise ArgumentError unless (0...TABLE_HEIGHT).include?(y)
@@ -29,20 +30,43 @@ module CraftingTable
       update_margins(x,y)
 
       ingredients[Vector[x,y]] = ingredient_type
+
+      self.changed = true
     end
 
-    def positions
-      ingredients.keys
+    def ==(other)
+      return false unless self.class == other.class
+
+      variants == other.variants
     end
 
-    # supports horizontal and vertical shifting, but not horizontal flips.
-    #
+    alias_method :eql?, :==
+
+    def hash
+      variants.hash
+    end
+
+    protected
+
+    attr_reader :ingredients
+
     def variants
+      update_variants if changed      
+
+      @variants
+    end
+    
+    private
+
+    attr_accessor :margins, :changed
+    attr_writer :ingredients, :variants
+
+    def update_variants
       if margins.values.any? { |e| e == Float::INFINITY }
         raise InvalidRecipeError
       end
 
-      shifts.map do |x,y|
+      recipes = shifts.map do |x,y|
         recipe      = self.class.new
 
         ingredients.each do |position, content|
@@ -51,29 +75,12 @@ module CraftingTable
           recipe[*new_position] = content
         end
 
-        recipe
+        Set[*recipe.ingredients]
       end
+
+      self.variants = Set[*recipes]
+      self.changed  = false
     end
-
-    def ==(other)
-      return false unless self.class == other.class
-
-      variants.any? { |e| e.ingredients == other.ingredients }
-    end
-
-    alias_method :eql?, :==
-
-    def hash
-      ingredients.hash
-    end
-
-    protected
-
-    attr_accessor :ingredients
-
-    private
-
-    attr_accessor :margins
 
     def update_margins(x,y)
       margins[:left]   = [x,                margins[:left]  ].min

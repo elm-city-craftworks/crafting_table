@@ -5,13 +5,11 @@ module CraftingTable
     end
 
     def [](recipe)
-      variant = recipe.variants.find { |v| recipes[v] }
-
-      recipes[variant] if variant
+      recipes[recipe]
     end
 
     def []=(recipe, output)
-      if recipe.variants.any? { |x| recipes[x] }
+      if recipes[recipe]
         raise ArgumentError, "A variant of this recipe is already defined!"
       end
 
