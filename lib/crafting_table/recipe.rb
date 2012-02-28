@@ -31,7 +31,7 @@ module CraftingTable
 
       update_margins(x,y)
 
-      self.dirty = true
+      self.variants_need_updating = true
     end
 
     def ==(other)
@@ -49,14 +49,14 @@ module CraftingTable
     protected
 
     def variants
-      update_variants if dirty 
+      update_variants if variants_need_updating
 
       @variants
     end
     
     private
 
-    attr_accessor :margins, :ingredients, :dirty
+    attr_accessor :margins, :ingredients, :variants_need_updating
     attr_writer :variants
 
     def update_variants
@@ -72,8 +72,8 @@ module CraftingTable
         end
       end
 
-      self.variants = Set[*variant_hashes]
-      self.dirty    = false
+      self.variants                  = Set[*variant_hashes]
+      self.variants_need_updating    = false
     end
 
     def update_margins(x,y)
