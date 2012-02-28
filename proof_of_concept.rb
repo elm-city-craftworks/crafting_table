@@ -1,7 +1,3 @@
-require "csv"
-require "matrix"
-require "set"
-
 require_relative "lib/crafting_table"
 
 recipe_file = "#{File.dirname(__FILE__)}/data/basic_recipes.csv"
