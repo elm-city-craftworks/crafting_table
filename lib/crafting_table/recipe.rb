@@ -64,7 +64,7 @@ module CraftingTable
         raise InvalidRecipeError
       end
 
-      variant_hashes = shifts.map do |x,y|
+      variant_hashes = valid_offsets.map do |x,y|
         ingredients.each_with_object({}) do |(position, content), var|
           new_position = position + Vector[x,y]
 
@@ -83,7 +83,7 @@ module CraftingTable
       margins[:top]    = [TABLE_HEIGHT-y-1, margins[:top]   ].min
     end
 
-    def shifts
+    def valid_offsets
       horizontal = (-margins[:left]..margins[:right]).to_a
       vertical   = (-margins[:bottom]..margins[:top]).to_a
 
