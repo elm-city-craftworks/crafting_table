@@ -14,6 +14,7 @@ module CraftingTable
                            :left   => Float::INFINITY, 
                            :right  => Float::INFINITY,
                            :bottom => Float::INFINITY }
+      self.variants    = Set.new
     end
 
     def [](x,y)
