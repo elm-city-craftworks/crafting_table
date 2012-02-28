@@ -64,19 +64,15 @@ module CraftingTable
         raise InvalidRecipeError
       end
 
-      variant_sets = shifts.map do |x,y|
-        ingredients_set = Set.new
-
-        ingredients.each do |position, content|
+      variant_hashes = shifts.map do |x,y|
+        ingredients.each_with_object({}) do |(position, content), var|
           new_position = position + Vector[x,y]
 
-          ingredients_set << [new_position, content]
+          var[new_position] = content
         end
-
-        ingredients_set
       end
 
-      self.variants = Set[*variant_sets]
+      self.variants = Set[*variant_hashes]
       self.dirty    = false
     end
 
