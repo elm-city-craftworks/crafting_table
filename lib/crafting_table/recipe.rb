@@ -14,7 +14,9 @@ module CraftingTable
                            :left   => Float::INFINITY, 
                            :right  => Float::INFINITY,
                            :bottom => Float::INFINITY }
-      self.variants    = Set.new
+
+      self.variants = Set.new
+      self.variants_need_updating = false
     end
 
     def [](x,y)
@@ -61,9 +63,7 @@ module CraftingTable
     attr_writer :variants
 
     def update_variants
-      if margins.values.any? { |e| e == Float::INFINITY }
-        raise InvalidRecipeError
-      end
+      raise InvalidRecipeError if ingredients.empty?
 
       variant_data = valid_offsets.map do |x,y|
         ingredients.each_with_object({}) do |(position, content), variant|

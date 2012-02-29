@@ -13,7 +13,7 @@ module CraftingTable
 
           grid = [csv.gets, csv.gets, csv.gets]
 
-          cookbook[recipe_from_grid(grid)] = [product, quantity]
+          cookbook[recipe_from_grid(grid)] = [product, quantity.to_i]
 
           csv.gets
         end
