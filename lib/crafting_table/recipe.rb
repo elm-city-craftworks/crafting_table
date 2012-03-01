@@ -1,6 +1,3 @@
-require "matrix"
-require "set"
-
 module CraftingTable
   InvalidRecipeError = Class.new(StandardError)
 
@@ -9,86 +6,73 @@ module CraftingTable
     TABLE_HEIGHT = 3
 
     def initialize
-      self.ingredients = {}
-      self.margins     = { :top    => Float::INFINITY, 
-                           :left   => Float::INFINITY, 
-                           :right  => Float::INFINITY,
-                           :bottom => Float::INFINITY }
-
-      self.variants = Set.new
-      self.variants_need_updating = false
+      self.ingredients     = {}
+      self.offset          = [Float::INFINITY, Float::INFINITY]
+      self.normalized      = {}
     end
 
     def [](x,y)
       raise ArgumentError unless (0...TABLE_WIDTH).include?(x)
       raise ArgumentError unless (0...TABLE_HEIGHT).include?(y)
 
-      ingredients[Vector[x,y]]
+      ingredients[[x,y]]
     end
 
     def []=(x,y,ingredient_type)
       raise ArgumentError unless (0...TABLE_WIDTH).include?(x)
       raise ArgumentError unless (0...TABLE_HEIGHT).include?(y)
 
-      ingredients[Vector[x,y]] = ingredient_type
-
-      update_margins(x,y)
-
-      self.variants_need_updating = true
+      ingredients[[x,y]] = ingredient_type
+       
+      update_offsets(x,y)
     end
 
     def ==(other)
       return false unless self.class == other.class
 
-      variants == other.variants
+      normalized == other.normalized
     end
 
     alias_method :eql?, :==
 
     def hash
-      variants.hash
+      normalized.hash
     end
 
     protected
 
-    def variants
-      update_variants if variants_need_updating
+    attr_reader :ingredients
 
-      @variants
+    def normalized
+      normalize if needs_normalization
+
+      @normalized
     end
-    
+
     private
 
-    attr_accessor :margins, :ingredients, :variants_need_updating
-    attr_writer :variants
+    attr_accessor :offset, :needs_normalization
+    attr_writer   :ingredients, :normalized
 
-    def update_variants
-      raise InvalidRecipeError if ingredients.empty?
+    def normalize
+      self.normalized = {}
 
-      variant_data = valid_offsets.map do |x,y|
-        ingredients.each_with_object({}) do |(position, content), variant|
-          new_position = position + Vector[x,y]
+      ingredients.each do |pos, item| 
+        new_pos = [pos[0] - offset[0], pos[1] + offset[1]]
 
-          variant[new_position] = content
-        end
+        @normalized[new_pos] = item
       end
 
-      self.variants                  = Set[*variant_data]
-      self.variants_need_updating    = false
+      self.needs_normalization = false
     end
 
-    def update_margins(x,y)
-      margins[:left]   = [x,                margins[:left]  ].min
-      margins[:right]  = [TABLE_WIDTH-x-1,  margins[:right] ].min
-      margins[:bottom] = [y,                margins[:bottom]].min
-      margins[:top]    = [TABLE_HEIGHT-y-1, margins[:top]   ].min
-    end
+    def update_offsets(x,y)
+      x_offset    = [x,                offset[0]].min
+      y_offset    = [TABLE_HEIGHT-y-1, offset[1]].min
 
-    def valid_offsets
-      horizontal = (-margins[:left]..margins[:right]).to_a
-      vertical   = (-margins[:bottom]..margins[:top]).to_a
+      self.offset = [x_offset, y_offset]
 
-      horizontal.product(vertical)
+      self.needs_normalization = true
     end
   end
 end
